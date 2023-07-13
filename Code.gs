@@ -128,7 +128,7 @@ function getUserProperties() {
  * emails from the 'Primary' category of the inbox.
 **/
 function createFilter(onlyPrimary = true) {
-  let inbox_filter = ["to:me", "in:inbox", "newer_than:10d"];
+  let inbox_filter = ["to:me", "in:inbox", "newer_than:2d"];
 
   let filter = inbox_filter.join(" ");
   if (onlyPrimary) {
@@ -387,7 +387,7 @@ function getHomePageCard(message) {
       CardService.newAction().setFunctionName("handleHourlyProcessSwitchChange")
     );
 
-  hourlySwitch.setSelected(hasProcessInboxTrigger());
+  hourlySwitch.setSelected(isInboxTriggerInstalled());
 
   let setHourlyProcessSwitch = CardService.newDecoratedText()
     .setTopLabel("Auto-Hourly Process")
@@ -471,7 +471,7 @@ function addTrigger(
   );
 
   //Install trigger if it doesnt exist
-  if (!hasProcessInboxTrigger()) {
+  if (!isInboxTriggerInstalled()) {
     ScriptApp.newTrigger("processInboxByBlade")
       .timeBased()
       .everyHours(1)
