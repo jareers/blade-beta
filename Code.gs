@@ -159,16 +159,15 @@ function processInboxByBlade() {
   while (attempts--) {
     let threads = GmailApp.search(searchFilter, startIndex, maxThreads);
     allThreads.push(...threads);
-    Logger.log('Threads# ' + allThreads.length);
     startIndex = startIndex + maxThreads;
     if (threads.length < maxThreads) {
       break;
     }
   }
-
+  
+  Logger.log('Threads# ' + allThreads.length);
   let totalMovedCount = 0;
   allThreads.forEach((element) => {
-    Logger.log(JSON.stringify(element.getMessages()[0]));
     totalMovedCount += checkIfUnsolicited(element);
   });
 
@@ -221,7 +220,6 @@ function saveContactInCache(senderEmailAddress, contactType) {
   let cachedContactList = getCachedContactList();
 
   cachedContactList[senderEmailAddress] = contactType;
-  Logger.log('Cached list: ' + cachedContactList);
   saveCachedContactList(cachedContactList);
   return getCachedContactList();
 }
@@ -338,10 +336,6 @@ function getHomePageCard(message) {
   let onlyPrimary = userProperties[ONLY_PRIMARY];
   let autoReply = userProperties[AUTO_REPLY];
   let replyText = userProperties[REPLY_TEXT];
-
-  Logger.log(
-    `label: ${label}\nminEmails: ${minEmails}\nautoArchive:${autoArchive}`
-  );
 
   let labelField = CardService.newTextInput()
     .setFieldName(LABEL)
@@ -531,8 +525,6 @@ function isInboxTriggerInstalled() {
 
 // Function to build the add-on - Entry point for Addon rendering when clicked in Gmail
 function buildAddOn() {
-  var email = Session.getActiveUser().getEmail();
-  Logger.log("Executing buildAddOn for: " + email);
   return getHomePageCard().build();
 }
 
@@ -579,9 +571,6 @@ function saveFormValuesAndExecuteHandler(e, handlerFunc) {
 
 // Function to process the inbox immediately upon user request
 function processNow(e) {
-  var email = Session.getActiveUser().getEmail();
-  Logger.log("Executing processNow for: " + email);
-
   saveFormValuesAndExecuteHandler(e, setUserProperties);
 
   var totalMovedCount = processInboxByBlade();
