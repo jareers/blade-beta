@@ -150,14 +150,14 @@ function processInboxByBlade() {
 
   let onlyPrimary = getUserProperty(ONLY_PRIMARY) === "true";
   let searchFilter = createFilter(onlyPrimary);
-  Logger.log('SF: ' + searchFilter);
   let allThreads = [];
 
-  while (true) {
+  // Make no more than 10 attempts, so as to avoid hitting script 
+  // execution time limit (45 secs) put in by Google. 
+  // (10 * 5 threads at max)
+  let attempts = 10;
+  while (attempts--) {
     let threads = GmailApp.search(searchFilter, startIndex, maxThreads);
-    if (threads.length == 0) {
-      Logger.log("Threads not found.");
-    }
     allThreads.push(...threads);
     Logger.log('Threads# ' + allThreads.length);
     startIndex = startIndex + maxThreads;
@@ -215,16 +215,6 @@ function getCachedContactList() {
 
 function saveCachedContactList(cachedContactList) {
   setUserProperty(CACHED_CONTACT_LIST, JSON.stringify(cachedContactList));
-}
-
-function test() {
-  // let up = PropertiesService.getUserProperties();
-  // up.deleteProperty(CACHED_CONTACT_LIST);
-  let ccl = getCachedContactList();
-  // ccl['jareers@live.com'] = contactTypes.CONTACT;
-  // saveCachedContactList(ccl);
-  Logger.log(JSON.stringify(getCachedContactList()));
-  //up.deleteProperty(CACHED_CONTACT_LIST);
 }
 
 function saveContactInCache(senderEmailAddress, contactType) {
@@ -440,16 +430,9 @@ function getHomePageCard(message) {
 
 function handleHourlyProcessSwitchChange(e) {
   let autoProcess = e.formInput[AUTO_PROCESS];
-
-  if (autoProcess === AUTO_PROCESS) {
-    let email = Session.getActiveUser().getEmail();
-    saveFormValuesAndExecuteHandler(e, addTrigger);
-    return updateHomePageCard();
-  } else {
-    let email = Session.getActiveUser().getEmail();
-    saveFormValuesAndExecuteHandler(e, deleteTrigger);
-    return updateHomePageCard();
-  }
+  let handlerFunc = (autoProcess === AUTO_PROCESS) ? addTrigger: deleteTrigger;
+  saveFormValuesAndExecuteHandler(e, handlerFunc);
+  return updateHomePageCard();
 }
 
 // Function to add the hourly process trigger
@@ -476,9 +459,10 @@ function addTrigger(
       .timeBased()
       .everyHours(1)
       .create();
-    return "Trigger successfully installed";
+    Logger.log("Trigger successfully installed");
+    return;
   }
-  return "Trigger already installed";
+  Logger.log("Trigger already installed");
 }
 
 // Function to delete the hourly process trigger
