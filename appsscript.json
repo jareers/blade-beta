@@ -1,0 +1,38 @@
+{
+    "timeZone": "America/New_York",
+    "dependencies": {
+      "enabledAdvancedServices": [
+        {
+          "userSymbol": "Gmail",
+          "version": "v1",
+          "serviceId": "gmail"
+        },
+        {
+          "userSymbol": "People",
+          "version": "v1",
+          "serviceId": "peopleapi"
+        }
+      ]
+    },
+    "exceptionLogging": "STACKDRIVER",
+    "runtimeVersion": "V8",
+    "oauthScopes": [
+      "https://www.googleapis.com/auth/gmail.addons.execute",
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/script.scriptapp",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/contacts.readonly"
+    ],
+    "gmail": {
+      "homepageTrigger": {
+        "runFunction": "buildAddOn"
+      },
+      "name": "Blade",
+      "logoUrl": "https://cdn.discordapp.com/attachments/1049256202015621160/1129044143612629082/Blade-logo.png",
+      "openLinkUrlPrefixes": [
+        "https://mail.google.com/"
+      ],
+      "primaryColor": "#FFF",
+      "secondaryColor": "#BBB"
+    }
+  }
