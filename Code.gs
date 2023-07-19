@@ -128,7 +128,7 @@ function getUserProperties() {
  * emails from the 'Primary' category of the inbox.
 **/
 function createFilter(onlyPrimary = true) {
-  let inbox_filter = ["to:me", "in:inbox", "newer_than:2d"];
+  let inbox_filter = ["to:me", "in:inbox", "newer_than:1d"];
 
   let filter = inbox_filter.join(" ");
   if (onlyPrimary) {
@@ -152,10 +152,11 @@ function processInboxByBlade() {
   let searchFilter = createFilter(onlyPrimary);
   let allThreads = [];
 
-  // Make no more than 10 attempts, so as to avoid hitting script 
-  // execution time limit (45 secs) put in by Google. 
-  // (10 * 5 threads at max)
-  let attempts = 10;
+  // Make no more than 7 attempts, so as to avoid hitting script 
+  // execution time limit (45 secs) or peopleapi contact access 
+  // limit per min (35 contacts) put in by Google. 
+  // (7 * 5 = 35 threads at max)
+  let attempts = 7;
   while (attempts--) {
     let threads = GmailApp.search(searchFilter, startIndex, maxThreads);
     allThreads.push(...threads);
@@ -226,7 +227,8 @@ function saveContactInCache(senderEmailAddress, contactType) {
 
 // Function to check if a contact exists in the cache
 function isContactInCache(senderEmailAddress) {
-  return getCachedContactList()[senderEmailAddress] !== null;
+  let contactTypeInCache = getCachedContactList()[senderEmailAddress];
+  return !(contactTypeInCache === null || contactTypeInCache === undefined);
 }
 
 /**
@@ -276,7 +278,7 @@ function extractEmailFromString(inputString) {
 function checkIfUnsolicited(thread) {
   const userProperties = getUserProperties();
   const messages = GmailApp.getMessagesForThread(thread);
-  const recipientCount = messages[0].getTo().split(";").length;
+  const recipientCount = messages[0].getTo().split(",").length;
   const label = getLabelFromName(userProperties[LABEL]);
   const senderEmailAddress = extractEmailFromString(messages[0].getFrom());
   const recipientEmailAddress = extractEmailFromString(messages[0].getTo());
@@ -285,8 +287,7 @@ function checkIfUnsolicited(thread) {
   if (
     recipientCount == 1 &&
     isMe(recipientEmailAddress) &&
-    isContactInCache(senderEmailAddress) &&
-    isContact(senderEmailAddress) == false
+    !(isContactInCache(senderEmailAddress) || isContact(senderEmailAddress))
   ) {
     const sendersThreadCount = GmailApp.search(
       "from:" + messages[0].getFrom()
