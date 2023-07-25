@@ -152,11 +152,11 @@ function processInboxByBlade() {
   let searchFilter = createFilter(onlyPrimary);
   let allThreads = [];
 
-  // Make no more than 7 attempts, so as to avoid hitting script 
+  // Make no more than 5 attempts, so as to avoid hitting script 
   // execution time limit (45 secs) or peopleapi contact access 
   // limit per min (35 contacts) put in by Google. 
-  // (7 * 5 = 35 threads at max)
-  let attempts = 7;
+  // (5 * 5 = 25 threads at max)
+  let attempts = 5;
   while (attempts--) {
     let threads = GmailApp.search(searchFilter, startIndex, maxThreads);
     allThreads.push(...threads);
@@ -177,9 +177,9 @@ function processInboxByBlade() {
 
 // Function to check if a given email address belongs to the user
 function isMe(fromAddress) {
-  var addresses = getEmailAddresses();
+  let addresses = getEmailAddresses();
   for (i = 0; i < addresses.length; i++) {
-    var address = addresses[i],
+    let address = addresses[i],
       r = RegExp(address, "i");
     if (r.test(fromAddress)) {
       return true;
@@ -201,7 +201,7 @@ function getEmailAddresses() {
 }
 
 function getLabelFromName(labelName) {
-  var label = GmailApp.getUserLabelByName(labelName);
+  let label = GmailApp.getUserLabelByName(labelName);
   if (!label) {
     label = GmailApp.createLabel(labelName);
   }
@@ -259,8 +259,8 @@ function isContact(senderEmailAddress) {
 }
 
 function extractEmailFromString(inputString) {
-  var emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-  var match = inputString.match(emailPattern);
+  let emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+  let match = inputString.match(emailPattern);
   if (match) {
     return match[0];
   } else {
@@ -289,15 +289,11 @@ function checkIfUnsolicited(thread) {
     isMe(recipientEmailAddress) &&
     !(isContactInCache(senderEmailAddress) || isContact(senderEmailAddress))
   ) {
-    const sendersThreadCount = GmailApp.search(
-      "from:" + messages[0].getFrom()
-    ).length;
-    const sendersEmailCount = sendersThreadCount + messages.length;
     const myReplyCount = GmailApp.search(
       // Filter emails sent as auto-reply with subject prefix 'Blade.net:'
       "from:me to:" + messages[0].getFrom() + " -subject:Blade.net:" 
     ).length;
-    if (sendersEmailCount >= userProperties[MIN_EMAILS] && myReplyCount == 0) {
+    if (myReplyCount == 0) {
       thread.addLabel(label);
       if (userProperties[AUTO_ARCHIVE]) {
         GmailApp.moveThreadToArchive(thread);
@@ -331,22 +327,13 @@ function checkIfUnsolicited(thread) {
 function getHomePageCard(message) {
   const userProperties = getUserProperties();
 
-  let label = userProperties[LABEL];
-  let minEmails = userProperties[MIN_EMAILS];
   let autoArchive = userProperties[AUTO_ARCHIVE];
   let onlyPrimary = userProperties[ONLY_PRIMARY];
   let autoReply = userProperties[AUTO_REPLY];
   let replyText = userProperties[REPLY_TEXT];
 
-  let labelField = CardService.newTextInput()
-    .setFieldName(LABEL)
-    .setTitle("Label")
-    .setValue(label);
-
-  let minEmailsField = CardService.newTextInput()
-    .setFieldName(MIN_EMAILS)
-    .setTitle("Number Of Mails")
-    .setValue(minEmails.toString());
+  let labelText = CardService.newTextParagraph()
+    .setText("Check [Strangers] label for archived emails. People in your contacts will not be processed.");
 
   let autoArchiveField = CardService.newSelectionInput()
     .setType(CardService.SelectionInputType.CHECK_BOX)
@@ -401,8 +388,7 @@ function getHomePageCard(message) {
     .setSubtitle("Declutter your Inbox");
 
   let mainSection = CardService.newCardSection()
-    .addWidget(labelField)
-    .addWidget(minEmailsField)
+    .addWidget(labelText)
     .addWidget(autoArchiveField)
     .addWidget(onlyPrimaryField)
     .addWidget(setHourlyProcessSwitch);
@@ -413,7 +399,7 @@ function getHomePageCard(message) {
     .setCollapsible(true)
     .setHeader("Auto-reply Configuration");
 
-  var card = CardService.newCardBuilder()
+  let card = CardService.newCardBuilder()
     .setHeader(cardHeader)
     .setFixedFooter(fixedFooter);
 
@@ -544,8 +530,8 @@ function validateMinEmails(minEmails) {
 
 function saveFormValuesAndExecuteHandler(e, handlerFunc) {
 
-  let label = e.formInput[LABEL];
-  let minEmails = e.formInput[MIN_EMAILS];
+  let label = getUserProperty(LABEL);
+  let minEmails = getUserProperty(MIN_EMAILS);
   let autoArchive = e.formInput[AUTO_ARCHIVE];
   let onlyPrimary = e.formInput[ONLY_PRIMARY];
   let autoReply = e.formInput[AUTO_REPLY];
@@ -574,7 +560,7 @@ function saveFormValuesAndExecuteHandler(e, handlerFunc) {
 function processNow(e) {
   saveFormValuesAndExecuteHandler(e, setUserProperties);
 
-  var totalMovedCount = processInboxByBlade();
+  let totalMovedCount = processInboxByBlade();
   if (totalMovedCount > 0) {
     return displayNotification(
       `Inbox processed, ${totalMovedCount} emails identified! Please refresh your Inbox.`
