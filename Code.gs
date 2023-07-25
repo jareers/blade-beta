@@ -333,7 +333,7 @@ function getHomePageCard(message) {
   let replyText = userProperties[REPLY_TEXT];
 
   let labelText = CardService.newTextParagraph()
-    .setText("Check [Strangers] label for archived emails.");
+    .setText("Check [Strangers] label for archived emails. People in your contacts will not be processed.");
 
   let autoArchiveField = CardService.newSelectionInput()
     .setType(CardService.SelectionInputType.CHECK_BOX)
