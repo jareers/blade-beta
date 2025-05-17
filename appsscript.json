@@ -28,7 +28,7 @@
         "runFunction": "buildAddOn"
       },
       "name": "Blade",
-      "logoUrl": "https://cdn.discordapp.com/attachments/1049256202015621160/1129044143612629082/Blade-logo.png",
+      "logoUrl": "https://raw.githubusercontent.com/jareers/blade-beta/refs/heads/main/res/blade-logo.png",
       "openLinkUrlPrefixes": [
         "https://mail.google.com/"
       ],
